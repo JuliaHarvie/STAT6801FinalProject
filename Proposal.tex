@@ -33,79 +33,50 @@
 \newcommand{\R}{\mathbb{R}}
 
 
-\thispagestyle{empty} %\setcounter{page}{0} \pagestyle{myheadings}
-%\markright{Case against Allen}
+\thispagestyle{empty} 
 
 
 \begin{document}
 
 \baselineskip = 20pt plus 3pt minus 3pt
 
-\centerline{\Large \bf Title} %Title
+\centerline{\Large \bf Final Project Proposal for STAT 6801} 
+\begin{center} By: Julia Harvie, 0916770 \\
+November 20, 2020 \end{center}
+
 \bigskip
 
 \section{Introduction}\label{sec:intro}
-This introduces a bias term to the MSE so even if the variance of a dataset is large, the bias can be used to reduce the MSE leading to an increase in prediction accuracy \cite{1} .
+The dataset of interest was created by concatenating the quality of red wines and the quality of white wines, data sets presented by Cortez et al., 2009\cite {1}. 12 measurements were recorded for each wine sample and a class of either red or white indicated. The objective of this analysis will be to fit a binomial regression model that will predict the colour of the wine based off these sample measurements.
 
-Ridge regression can only be used if the design matrix has full rank, n  $ > $ p. If p $ > $ n then LASSO has to be used. Also, until ridge regression, LASSO does not just shrink coefficients it actually reduces them to zero. In practice this can been seen as starting with a dataset of 80 features and after applying the LASSO only 5 remain with coefficients great than zero.  This makes it a very powerful tool for interpreting data sets with large feature count to determine which are the truly important features. 
+Even though this dataset has comes with 12 measurements per sample there is a possibility that not all of them are need to build an informative model. To test for this LASSO regression will be used. Unlike other regression types such as ridge regression, LASSO does not just shrink coefficients, it can reduce them to zero. However it still needs to be considered that LASSO may not be the most informative regression method for this data set. If the measurements are highly correlated, then ridge regression will outperform LASSO\cite{2}. In consideration of this, the model will be fitted using elastic net regularization.
 
-LASSO does have its own limitations such as if n $ > $ p but the features have high correlation then ridge regression will still outperform the LASSO \cite{2} . 
-Elastic net is a regulation technique that has been presented to overcome the short comings of LASSO regression. Instead of a norm as a MSE penalty term it uses the elastic net penalty Equation here. It is an amalgamation of ridge and LASSO penalties controlled by the variable alpha. When alpha is 0 it becomes pure ridge regression. When alpha is 1 is pure LASSO. By choosing an alpha value in between it maximizes the benefits of both regression methods. 
-
-The data set I will be using for the final project is a modification of the wine quality data sets presented by Cortez et al in 2009 \cite{3}. The red wine data and the white wine data where concatenated into a single dataset and an addition attribute colour was added to the new data set indicating which original data set the observations came from. This the attribute or feature will be used as the output for the analysis making it a binomial regression problem. When creating my training set will equal downsample both class for a total n of 100. Reducing the number of observation in a binomial data set increases the difficulty of the regression, making this an interesting test of the regression methods \cite{4}. 
-
-This dataset will be a good candidate for elastic net regularization because it will allow for feature reduction due to coefficients being shrunk to zero but without the LASSO limitations that occur when n $ > $ p and features are highly correlated as may be the case here. The R package Glmnet will be used to analysis this data set as it allows for use of the LASSO or the elastic net penalty to be used to fit a generalized linear model.
-
+For this method, instead of using the LASSO penalty to minimize the mean squared error (MSE) during model fitting, the elastic net penalty, $ (1 - \alpha)|\beta|_1+\alpha|\beta|^2 $ will be used\cite{2}. This penalty is an amalgamation of the ridge and the LASSO penalties controlled by the parameter $\alpha$. When $\alpha$ is set to 0 standard ridge regression is performed. When $\alpha$ is set to 1 standard LASSO regression is performed. When $0<\alpha<1$ both regression methods influence the fit, maximizing the benefits each method can provide.  The R package Glmnet will be used to analysis this data set as it allows for the LASSO or the elastic net penalty to be used to fit a generalized linear model\cite{3}.
 
 \section{Body}\label{sec:body}
-The function 'cv.glmnet' will be used to perform a cross validation on the data to determine both the critical lambda and the ideal alpha value. Because the data is binomial a critical lambda can be found that either minimizes MSE or that minimizes misclassification. By default 'cv.glmnet' has an alpha set to 1 meaning only the LASSO penalty is being used. By assigning an alpha $ < $ 1  the elastic net penalty is used instead. Can use the argument 'cv.glmnet'  foldid  to perform cross validation on the alpha parameter. 
-Once the critical lambda and alpha values have been determined, the function glmnet will be used to fit the model. Glmnet can be used to fit multiple models that span all the value of lambdas for which every coefficients is $ > $ until all are shrunk to zero. It also uses a default alpha value of 1.  Alternatively the critical lambda and alph values can be set directly in the function to produce a singular model.  The coefficients of this model will be examined to determine which features survived the regression. This fitted model could also be used with the 'predict' function for further analysis. 
+The first step will be subset the data into training and testing datasets. This will be done using down sampling to ensure an equal representation of each class in both data sets to prevent the introduction of bias through over or under representation. In order to fit a binomial regression model using elastic net a critical $\alpha$ and $\lambda$ must be identified for the data set. Both parameters will require cross validation which can be done using the function cv.glmnet.  Because the data is binomial a critical $\lambda$ can be found that either minimizes MSE or that minimizes misclassification. By default 'cv.glmnet' has an alpha set to 1 meaning only the LASSO penalty is being used. By assigning an $\alpha  < $ 1  the elastic net penalty is used instead. The 'cv.glmnet'  argument foldid will be utilized to perform cross validation of various $\alpha$ values to determine the one that performs the best. Once the critical $\lambda$ and $\alpha$ values have been determined, the function 'glmnet' will be used to fit the model. Glmnet can be used to fit multiple models that span all the value of $\lambda$ from a value which allows every coefficients to $ > $ zero, to a value where all coefficients have been shrunk to zero. Like cv.glmnet, glmnet also has a default $\alpha$ value of 1.  Alternatively the critical $\lambda$ and $\alpha$ values can be set directly in the function to produce a singular model. A singular model will be fit using the $\alpha$ and $\lambda$ parameters determined previously. The coefficients of this model will be examined to determine which features survived the regression. Finally, this model will be applied to the testing dataset and evaluated using a confusion matrix
 
 \section{Conclusion}\label{sec:conclusion}
-As well as determining just trying to produce the best fitting model all the way I can plot various outputs in order to learn more about my dataset. By plotting the glmnet object for glmnet over all the lambdas I can see which of my coefficients shrunk to zero first giving me an idea of order of importance. My critical alpha value will give insight into how correlated the features are. We know when features are highly correlated ridge regression outperforms lasso and as alpha approach zero the elastic net is favoring ridge regression so we can infer the smaller the alpha the greater the correlation among features \cite{4} .
-
+Through out this analysis addition information can be inferred about the dataset by examining some of the other outputs created by the model fitting functions. By plotting the output of a glmnet fit for all values of $\lambda$ it can be seen the order of which the coefficients shrink to zero, presenting an order of importance. The critical $\alpha$ value will also give insight into how correlated the features are. It has been seen that when features are highly correlated ridge regression outperforms LASSO and as $\alpha$ approach zero the elastic net penalty is favouring the ridge regression component. Therefor a low $\alpha$ value can be indicative of high levels of correlation among some of the features\cite{2} .
 
 
 \begin{thebibliography}{9}
 \bibitem{1} 
-Tibshirani, R. (1996).
-Regression Shrinkage and Selection Via the Lasso.
-\textit{Journal of the Royal Statistical Society: Series B (Methodological), 58(1), 267-288.}
-doi:10.1111/j.2517-6161.1996.tb02080.x
+Cortez, P., Cerdeira, A., Almeida, F., Matos T., \& Reis., J. (2009)
+Modeling wine preferences by data mining from physicochemical properties.
+\textit{In Decision Support Systems, Elsevier, 47(4), 547-553}
+https://doi.org/10.1016/j.dss.2009.05.016
 \bibitem{2} 
 Zou, H., \& Hastie, T. (2005)
 Regularization and variable selection via the elastic net.
 \textit{Journal of the Royal Statistical Society: Series B (Statistical Methodology), 67(2), 301-320}.
 doi:10.1111/j.1467-9868.2005.00503.x
 \bibitem{3} 
-Cortez, P., Cerdeira, A., Almeida, F., Matos T., \& Reis., J. (2009)
-Modeling wine preferences by data mining from physicochemical properties.
-\textit{In Decision Support Systems, Elsevier, 47(4), 547-553}
-https://doi.org/10.1016/j.dss.2009.05.016
-\bibitem{4} 
 Hastie, T., Qian, J. (2016)
 An Introduction to \bf{glmnet}
 \\\texttt{https://cran.r-project.org/web/packages/glmnet/glmnet.pdf}
 
 \end{thebibliography}
-
-
-\section{The Sub-differential}\label{sec:sub}
-
-%\bibitem{ESLII} 
-%Hastie, T., Friedman, J., \& Tisbshirani, R. (2017).
-%\textit{The Elements of statistical learning: Data mining, inference, and prediction.}. (German) 
-%New York: Springer
-
-
-
-
-
-Consider the linear model 
-\[
-y=X\beta + \varepsilon
-\]
-where $y\in\R^n$, $X$ is an $n\times p$ design matrix and $\varepsilon \sim N_n(0,\sigma^2{\bf I}_n)$.
 
 \end{document}
 
